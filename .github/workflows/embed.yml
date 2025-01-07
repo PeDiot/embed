@@ -11,19 +11,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Étape 1 : Vérifier le code du dépôt
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Étape 2 : Configurer Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # Étape 3 : Construire l'image Docker
       - name: Build Docker Image
         run: docker build -t embed .
 
-      # Étape 4 : Exécuter le container avec les secrets
       - name: Run Docker Container with Env Secrets
         env:
           SECRETS_JSON: ${{ secrets.SECRETS_JSON }}
