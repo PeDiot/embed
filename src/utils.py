@@ -9,19 +9,19 @@ REQUESTS_HEADERS = {
 
 
 def load_json(file_path: str) -> Dict:
-    with open(file_path, 'r', encoding='utf-8') as f:
+    with open(file_path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
 def save_json(data: dict, file_path: str) -> bool:
     try:
-        with open(file_path, 'w', encoding='utf-8') as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
         return True
     except Exception as e:
         print(f"Error saving JSON file: {e}")
         return False
-    
+
 
 def download_image_as_pil(url: str, timeout: int = 10) -> Image.Image:
     response = requests.get(url, stream=True, headers=REQUESTS_HEADERS, timeout=timeout)

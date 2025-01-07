@@ -11,18 +11,24 @@ MODEL_NAME = "Marqo/marqo-fashionCLIP"
 
 class FashionCLIPEncoder:
     def __init__(self):
-        self.processor = AutoProcessor.from_pretrained(MODEL_NAME, trust_remote_code=True)
+        self.processor = AutoProcessor.from_pretrained(
+            MODEL_NAME, trust_remote_code=True
+        )
         self.model = AutoModel.from_pretrained(MODEL_NAME, trust_remote_code=True)
 
         self.model.eval()
         self.device = self.model.device
 
-    def encode_images(self, images: List[Image], batch_size: Optional[int] = None) -> List[List[float]]:
+    def encode_images(
+        self, images: List[Image], batch_size: Optional[int] = None
+    ) -> List[List[float]]:
         if batch_size is None:
             batch_size = len(images)
 
         def transform_fn(el: Dict):
-            return self.processor(images=[content for content in el["image"]], return_tensors="pt")
+            return self.processor(
+                images=[content for content in el["image"]], return_tensors="pt"
+            )
 
         dataset = Dataset.from_dict({"image": images})
         dataset.set_format("torch")
@@ -39,7 +45,9 @@ class FashionCLIPEncoder:
 
         return image_embeddings
 
-    def encode_text(self, text: List[str], batch_size: Optional[int] = None) -> List[List[float]]:
+    def encode_text(
+        self, text: List[str], batch_size: Optional[int] = None
+    ) -> List[List[float]]:
         if batch_size is None:
             batch_size = len(text)
 
