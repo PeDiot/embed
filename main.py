@@ -2,19 +2,21 @@ import sys
 
 sys.path.append("../")
 
-import uuid, tqdm
+import uuid, tqdm, json, os
 from qdrant_client import QdrantClient
 import src
 
 
-SECRETS_PATH = "secrets.json"
 BATCH_SIZE = 32
 
 
 def main():
-    secrets = src.utils.load_json(file_path=SECRETS_PATH)
+    secrets = json.loads(os.getenv("SECRETS_JSON"))
+    gcp_credentials = secrets.get("GCP_CREDENTIALS")
+    gcp_credentials["private_key"] = gcp_credentials["private_key"].replace("\\n", "\n")
 
-    bq_client = src.bigquery.init_client(credentials_dict=secrets.get("GCP_CREDENTIALS"))
+    bq_client = src.bigquery.init_client(credentials_dict=gcp_credentials)
+    return
     qdrant_client = QdrantClient(api_key=secrets.get("QDRANT_API_KEY"), url=secrets.get("QDRANT_URL"))
     encoder = src.encoder.FashionCLIPEncoder()
 
