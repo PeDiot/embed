@@ -16,7 +16,6 @@ def main():
     gcp_credentials["private_key"] = gcp_credentials["private_key"].replace("\\n", "\n")
 
     bq_client = src.bigquery.init_client(credentials_dict=gcp_credentials)
-    return
     qdrant_client = QdrantClient(api_key=secrets.get("QDRANT_API_KEY"), url=secrets.get("QDRANT_URL"))
     encoder = src.encoder.FashionCLIPEncoder()
 
