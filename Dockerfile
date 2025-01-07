@@ -16,9 +16,6 @@ COPY src/ /app/src/
 # Copy the main script
 COPY main.py .
 
-# Copy secrets file
-COPY secrets.json /app/secrets/
-
 # Copy requirements and install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
