@@ -1,4 +1,4 @@
-name: Run Dockerized Python Script with Secrets
+name: Embed.
 
 on:
   workflow_dispatch:

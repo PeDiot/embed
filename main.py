@@ -1,5 +1,5 @@
 import sys
-
+import gc
 sys.path.append("../")
 
 import uuid, tqdm, json, os
@@ -36,18 +36,19 @@ def main():
 
         if len(point_ids) > 0 and len(point_ids) % BATCH_SIZE == 0:
             n += len(point_ids)
-            
+
             try:
                 embeddings = encoder.encode_images(images)
-            except: 
+            except Exception as e:
+                print(f"Encoding error: {e}")
                 continue
-            
+
             points, rows = src.qdrant.prepare(
                 point_ids=point_ids, 
                 payloads=payloads, 
                 embeddings=embeddings
             )
-            
+
             if src.qdrant.upload(client=qdrant_client, points=points):
                 if src.bigquery.upload(
                     client=bq_client, 
@@ -70,18 +71,21 @@ def main():
                     client=bq_client, 
                     dataset_id=src.enums.DATASET_ID, 
                     table_id=src.enums.QDRANT_TABLE_ID, 
-                    rows=rows
+                    rows=valid_rows
                 ):
-                    n_success += len(point_ids)
+                    n_success += len(valid_rows)
 
-            point_ids, images, payloads = [], [], []
+            del point_ids[:]
+            del images[:]
+            del payloads[:]
+            del embeddings
+            gc.collect()
 
             loop.set_description(
                 f"Success rate: {n_success / n:.2f} | "
                 f"Processed: {n} | "
                 f"Inserted: {n_success} | "
             )
-
 
 if __name__ == "__main__":
     main()
