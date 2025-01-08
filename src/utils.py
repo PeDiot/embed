@@ -24,7 +24,11 @@ def save_json(data: dict, file_path: str) -> bool:
 
 
 def download_image_as_pil(url: str, timeout: int = 10) -> Image.Image:
-    response = requests.get(url, stream=True, headers=REQUESTS_HEADERS, timeout=timeout)
+    try: 
+        response = requests.get(url, stream=True, headers=REQUESTS_HEADERS, timeout=timeout)
 
-    if response.status_code == 200:
-        return Image.open(response.raw)
+        if response.status_code == 200:
+            return Image.open(response.raw)
+        
+    except Exception as e:
+        return

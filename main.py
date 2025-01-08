@@ -4,6 +4,7 @@ import gc
 sys.path.append("../")
 
 import uuid, tqdm, json, os
+from PIL import Image
 from qdrant_client import QdrantClient
 import src
 
@@ -30,12 +31,14 @@ def main():
 
     for row in loop:
         row = dict(row)
-        point_id = str(uuid.uuid4())
         image = src.utils.download_image_as_pil(url=row.get("image_location"))
 
-        images.append(image)
-        payloads.append(row)
-        point_ids.append(point_id)
+        if isinstance(image, Image.Image):
+            point_id = str(uuid.uuid4())
+
+            images.append(image)
+            payloads.append(row)
+            point_ids.append(point_id)
 
         if len(point_ids) > 0 and len(point_ids) % BATCH_SIZE == 0:
             n += len(point_ids)
@@ -76,10 +79,7 @@ def main():
                 ):
                     n_success += len(valid_rows)
 
-            del point_ids[:]
-            del images[:]
-            del payloads[:]
-            del embeddings
+            point_ids, images, payloads = [], [], []
             gc.collect()
 
             loop.set_description(
