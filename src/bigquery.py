@@ -25,7 +25,7 @@ def load_items_to_embed(
     category.category_type AS category_type,
     catalog.women AS women
     FROM `{PROJECT_ID}.{dataset_id}.{ITEM_TABLE_ID}` item
-    LEFT JOIN `{PROJECT_ID}.{dataset_id}.{IMAGE_TABLE_ID}` image ON item.id = image.item_id
+    LEFT JOIN `{PROJECT_ID}.{dataset_id}.{IMAGE_TABLE_ID}` image USING (vinted_id)
     LEFT JOIN `{PROJECT_ID}.{dataset_id}.{CATEGORY_TABLE_ID}` category USING (catalog_id)
     LEFT JOIN `{PROJECT_ID}.{dataset_id}.{CATALOG_TABLE_ID}` catalog ON item.catalog_id = catalog.id
     WHERE 
