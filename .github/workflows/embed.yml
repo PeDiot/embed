@@ -20,7 +20,25 @@ jobs:
       - name: Build Docker Image
         run: docker build -t embed .
 
-      - name: Run Docker Container with Env Secrets
+      - name: Run Docker Container with Retry
         env:
           SECRETS_JSON: ${{ secrets.SECRETS_JSON }}
-        run: docker run -e SECRETS_JSON embed
+        run: |
+          retries=10
+          delay=10
+          attempt=0
+
+          until [ $attempt -ge $retries ]; do
+              echo "Attempt $((attempt+1)) of $retries..."
+              if docker run -e SECRETS_JSON embed; then
+                  echo "Step succeeded on attempt $((attempt+1))"
+                  exit 0
+              else
+                  echo "Step failed on attempt $((attempt+1)). Retrying in $delay seconds..."
+                  attempt=$((attempt+1))
+                  sleep $delay
+              fi
+          done
+
+          echo "All retry attempts failed."
+          exit 1
