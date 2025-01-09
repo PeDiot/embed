@@ -5,22 +5,23 @@ sys.path.append("../")
 
 import uuid, tqdm, json, os
 from PIL import Image
-from qdrant_client import QdrantClient
+from pinecone import Pinecone
 import src
 
 
-BATCH_SIZE = 32
+BATCH_SIZE = 64
 
 
 def main():
     secrets = json.loads(os.getenv("SECRETS_JSON"))
+
     gcp_credentials = secrets.get("GCP_CREDENTIALS")
     gcp_credentials["private_key"] = gcp_credentials["private_key"].replace("\\n", "\n")
-
     bq_client = src.bigquery.init_client(credentials_dict=gcp_credentials)
-    qdrant_client = QdrantClient(
-        api_key=secrets.get("QDRANT_API_KEY"), url=secrets.get("QDRANT_URL")
-    )
+
+    pc_client = Pinecone(api_key=secrets.get("PINECONE_API_KEY"))
+    pinecone_index = pc_client.Index(src.enums.PINECONE_INDEX_NAME)
+
     encoder = src.encoder.FashionCLIPEncoder()
 
     loader = src.bigquery.load_items_to_embed(client=bq_client, shuffle=True)
@@ -49,15 +50,15 @@ def main():
                 print(f"Encoding error: {e}")
                 continue
 
-            points, rows = src.qdrant.prepare(
+            points, rows = src.pinecone.prepare(
                 point_ids=point_ids, payloads=payloads, embeddings=embeddings
             )
 
-            if src.qdrant.upload(client=qdrant_client, points=points):
+            if src.pinecone.upload(index=pinecone_index, vectors=points):
                 if src.bigquery.upload(
                     client=bq_client,
                     dataset_id=src.enums.DATASET_ID,
-                    table_id=src.enums.QDRANT_TABLE_ID,
+                    table_id=src.enums.PINECONE_TABLE_ID,
                     rows=rows,
                 ):
                     n_success += len(point_ids)
@@ -66,7 +67,7 @@ def main():
                 valid_rows = []
 
                 for point, row in zip(points, rows):
-                    success = src.qdrant.upload(client=qdrant_client, points=[point])
+                    success = src.pinecone.upload(index=pinecone_index, vectors=[point])
 
                     if success:
                         valid_rows.append(row)
@@ -74,7 +75,7 @@ def main():
                 if src.bigquery.upload(
                     client=bq_client,
                     dataset_id=src.enums.DATASET_ID,
-                    table_id=src.enums.QDRANT_TABLE_ID,
+                    table_id=src.enums.PINECONE_TABLE_ID,
                     rows=valid_rows,
                 ):
                     n_success += len(valid_rows)
