@@ -29,7 +29,7 @@ def load_items_to_embed(
     LEFT JOIN `{PROJECT_ID}.{dataset_id}.{CATEGORY_TABLE_ID}` category USING (catalog_id)
     LEFT JOIN `{PROJECT_ID}.{dataset_id}.{CATALOG_TABLE_ID}` catalog ON item.catalog_id = catalog.id
     WHERE 
-    item.id NOT in (SELECT item_id FROM `{PROJECT_ID}.{dataset_id}.{QDRANT_TABLE_ID}`)
+    item.id NOT in (SELECT item_id FROM `{PROJECT_ID}.{dataset_id}.{PINECONE_TABLE_ID}`)
     AND item.is_available = TRUE
     """
 
@@ -46,8 +46,7 @@ def upload(
         return False
 
     output = client.insert_rows_json(
-        table=f"{PROJECT_ID}.{dataset_id}.{table_id}", 
-        json_rows=rows
+        table=f"{PROJECT_ID}.{dataset_id}.{table_id}", json_rows=rows
     )
 
     return len(output) == 0
