@@ -24,6 +24,9 @@ def prepare(
 
 
 def upload(client: QdrantClient, points: models.PointStruct) -> bool:
+    if len(points) == 0:
+        return False
+
     try:
         client.upsert(collection_name=QDRANT_COLLECTION_NAME, points=points)
         return True

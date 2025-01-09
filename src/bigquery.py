@@ -42,8 +42,12 @@ def load_items_to_embed(
 def upload(
     client: bigquery.Client, dataset_id: str, table_id: str, rows: List[Dict]
 ) -> bool:
+    if len(rows) == 0:
+        return False
+
     output = client.insert_rows_json(
-        table=f"{PROJECT_ID}.{dataset_id}.{table_id}", json_rows=rows
+        table=f"{PROJECT_ID}.{dataset_id}.{table_id}", 
+        json_rows=rows
     )
 
     return len(output) == 0
