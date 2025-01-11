@@ -1,7 +1,11 @@
-name: Embed.
+name: Embed
 
 on:
+  push:
   workflow_dispatch:
+  schedule:
+    # Runs every 6.5 hours (6h30m)
+    - cron: '0 */6,5 * * *'
 
 jobs:
   build-and-run:
