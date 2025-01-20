@@ -19,11 +19,13 @@ def load_items_to_embed(
     client: bigquery.Client, dataset_id: str = DATASET_ID, shuffle: bool = False
 ) -> bigquery.table.RowIterator:
     query = f"""
+    WITH tab AS (
     SELECT 
     item.*, 
     image.url AS image_location, 
     category.category_type AS category_type,
-    catalog.women AS women
+    catalog.women AS women,
+    ROW_NUMBER() OVER (PARTITION BY item.vinted_id ORDER BY item.vinted_id DESC) AS row_num
     FROM `{PROJECT_ID}.{dataset_id}.{ITEM_TABLE_ID}` item
     LEFT JOIN `{PROJECT_ID}.{dataset_id}.{IMAGE_TABLE_ID}` image USING (vinted_id)
     LEFT JOIN `{PROJECT_ID}.{dataset_id}.{CATEGORY_TABLE_ID}` category USING (catalog_id)
@@ -31,6 +33,8 @@ def load_items_to_embed(
     WHERE 
     item.id NOT in (SELECT item_id FROM `{PROJECT_ID}.{dataset_id}.{PINECONE_TABLE_ID}`)
     AND item.is_available = TRUE
+    )
+    SELECT * FROM tab WHERE row_num = 1
     """
 
     if shuffle:
