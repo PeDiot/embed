@@ -13,6 +13,9 @@ BATCH_SIZE = 128
 
 
 def main():
+    shard_index = int(os.getenv("SHARD_INDEX", 0))
+    total_shards = int(os.getenv("TOTAL_SHARDS", 1))
+    
     secrets = json.loads(os.getenv("SECRETS_JSON"))
 
     gcp_credentials = secrets.get("GCP_CREDENTIALS")
@@ -22,7 +25,12 @@ def main():
     pc_client = Pinecone(api_key=secrets.get("PINECONE_API_KEY"))
     pinecone_index = pc_client.Index(src.enums.PINECONE_INDEX_NAME)
     encoder = src.encoder.FashionCLIPEncoder()
-    loader = src.bigquery.load_items_to_embed(client=bq_client, shuffle=True)
+    loader = src.bigquery.load_items_to_embed(
+        client=bq_client, 
+        shuffle=True,
+        shard_index=shard_index,
+        total_shards=total_shards
+    )
 
     n_success, n = 0, 0
     point_ids, images, payloads = [], [], []

@@ -16,8 +16,35 @@ def init_client(credentials_dict: Dict) -> bigquery.Client:
 
 
 def load_items_to_embed(
-    client: bigquery.Client, dataset_id: str = DATASET_ID, shuffle: bool = False
+    client: bigquery.Client, 
+    dataset_id: str = DATASET_ID, 
+    shuffle: bool = False,
+    shard_index: int = 0,
+    total_shards: int = 1
 ) -> bigquery.table.RowIterator:
+    query = _query_items_to_embed(dataset_id, shuffle, shard_index, total_shards)
+    return client.query(query).result()
+
+
+def upload(
+    client: bigquery.Client, dataset_id: str, table_id: str, rows: List[Dict]
+) -> bool:
+    if len(rows) == 0:
+        return False
+
+    output = client.insert_rows_json(
+        table=f"{PROJECT_ID}.{dataset_id}.{table_id}", json_rows=rows
+    )
+
+    return len(output) == 0
+
+
+def _query_items_to_embed(
+    dataset_id: str, 
+    shuffle: bool = False, 
+    shard_index: int = 0,
+    total_shards: int = 1
+) -> str:
     query = f"""
     WITH tab AS (
     SELECT 
@@ -34,23 +61,12 @@ def load_items_to_embed(
     item.id NOT in (SELECT item_id FROM `{PROJECT_ID}.{dataset_id}.{PINECONE_TABLE_ID}`)
     AND item.is_available = TRUE
     )
-    SELECT * FROM tab WHERE row_num = 1
+    SELECT * FROM tab 
+    WHERE row_num = 1
+    AND MOD(FARM_FINGERPRINT(CAST(vinted_id AS STRING)), {total_shards}) = {shard_index}
     """
 
     if shuffle:
         query += " ORDER BY RAND()"
 
-    return client.query(query).result()
-
-
-def upload(
-    client: bigquery.Client, dataset_id: str, table_id: str, rows: List[Dict]
-) -> bool:
-    if len(rows) == 0:
-        return False
-
-    output = client.insert_rows_json(
-        table=f"{PROJECT_ID}.{dataset_id}.{table_id}", json_rows=rows
-    )
-
-    return len(output) == 0
+    return query
