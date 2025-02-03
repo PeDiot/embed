@@ -58,8 +58,8 @@ def _query_items_to_embed(
     LEFT JOIN `{PROJECT_ID}.{dataset_id}.{CATEGORY_TABLE_ID}` category USING (catalog_id)
     LEFT JOIN `{PROJECT_ID}.{dataset_id}.{CATALOG_TABLE_ID}` catalog ON item.catalog_id = catalog.id
     WHERE 
-    item.id NOT in (SELECT item_id FROM `{PROJECT_ID}.{dataset_id}.{PINECONE_TABLE_ID}`)
-    AND item.is_available = TRUE
+    item.id NOT IN (SELECT item_id FROM `{PROJECT_ID}.{dataset_id}.{PINECONE_TABLE_ID}`)
+    AND item.vinted_id NOT IN (SELECT vinted_id FROM `{PROJECT_ID}.{dataset_id}.{SOLD_TABLE_ID}`)
     )
     SELECT * FROM tab 
     WHERE row_num = 1

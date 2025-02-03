@@ -6,5 +6,6 @@ ITEM_TABLE_ID = "item"
 IMAGE_TABLE_ID = "image"
 PINECONE_TABLE_ID = "pinecone"
 CATEGORY_TABLE_ID = "category"
+SOLD_TABLE_ID = "sold"
 
 PINECONE_INDEX_NAME = "items"
