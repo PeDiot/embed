@@ -21,7 +21,7 @@ WHERE
 item.id NOT IN (SELECT item_id FROM `{PROJECT_ID}.{DATASET_ID}.{PINECONE_TABLE_ID}`)
 AND item.vinted_id NOT IN (SELECT vinted_id FROM `{PROJECT_ID}.{DATASET_ID}.{SOLD_TABLE_ID}`)
 )
-SELECT * FROM tab 
+SELECT * EXCEPT (row_num) FROM tab 
 WHERE row_num = 1
 """
 
@@ -57,7 +57,7 @@ def upload(
     output = client.insert_rows_json(
         table=f"{PROJECT_ID}.{DATASET_ID}.{table_id}", json_rows=rows
     )
-
+    
     return len(output) == 0
 
 
