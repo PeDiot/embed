@@ -1,6 +1,7 @@
 import sys
 import gc
 from typing import Optional, Tuple
+
 sys.path.append("../")
 
 import uuid, tqdm, json, os
@@ -24,7 +25,7 @@ def get_shard_params() -> Tuple[Optional[int], Optional[int]]:
 
 
 def main():
-    shard_index, total_shards = get_shard_params()    
+    shard_index, total_shards = get_shard_params()
     secrets = json.loads(os.getenv("SECRETS_JSON"))
 
     gcp_credentials = secrets.get("GCP_CREDENTIALS")
@@ -36,11 +37,11 @@ def main():
     encoder = src.encoder.FashionCLIPEncoder()
 
     loader = src.bigquery.load_items_to_embed(
-        client=bq_client, 
+        client=bq_client,
         shuffle=True,
         n=NUM_ITEMS,
         shard_index=shard_index,
-        total_shards=total_shards
+        total_shards=total_shards,
     )
 
     n_success, n = 0, 0

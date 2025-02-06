@@ -37,14 +37,14 @@ def init_client(credentials_dict: Dict) -> bigquery.Client:
 
 
 def load_items_to_embed(
-    client: bigquery.Client, 
+    client: bigquery.Client,
     shuffle: bool = False,
     n: Optional[int] = None,
     shard_index: Optional[int] = None,
-    total_shards: Optional[int] = None
+    total_shards: Optional[int] = None,
 ) -> bigquery.table.RowIterator:
     query = _query_items_to_embed(shuffle, n, shard_index, total_shards)
-    
+
     return client.query(query).result()
 
 
@@ -57,18 +57,18 @@ def upload(
     output = client.insert_rows_json(
         table=f"{PROJECT_ID}.{DATASET_ID}.{table_id}", json_rows=rows
     )
-    
+
     return len(output) == 0
 
 
 def _query_items_to_embed(
-    shuffle: bool = False, 
+    shuffle: bool = False,
     n: Optional[int] = None,
     shard_index: Optional[int] = None,
-    total_shards: Optional[int] = None
+    total_shards: Optional[int] = None,
 ) -> str:
     query = BASE_QUERY
-    
+
     if shard_index is not None and total_shards is not None:
         query += f" AND MOD(FARM_FINGERPRINT(CAST(vinted_id AS STRING)), {total_shards}) = {shard_index}"
 

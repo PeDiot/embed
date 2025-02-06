@@ -35,9 +35,9 @@ def upload(index: pinecone.Index, vectors: List[Dict]) -> bool:
 
 def _create_payload(payload: Dict) -> Optional[Dict]:
     if payload.get("id") and payload.get("url") is not None:
-        if not payload.get("category_type"): 
+        if not payload.get("category_type"):
             payload["category_type"] = ""
-        
+
         payload["is_available"] = True
 
         return payload
