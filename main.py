@@ -1,6 +1,6 @@
 import sys
 import gc
-
+from typing import Optional, Tuple
 sys.path.append("../")
 
 import uuid, tqdm, json, os
@@ -10,12 +10,21 @@ import src
 
 
 BATCH_SIZE = 128
+NUM_ITEMS = 50000
+
+
+def get_shard_params() -> Tuple[Optional[int], Optional[int]]:
+    shard_index = int(os.getenv("SHARD_INDEX", -1))
+    total_shards = int(os.getenv("TOTAL_SHARDS", -1))
+
+    if shard_index == -1 or total_shards == -1:
+        return None, None
+
+    return shard_index, total_shards
 
 
 def main():
-    shard_index = int(os.getenv("SHARD_INDEX", 0))
-    total_shards = int(os.getenv("TOTAL_SHARDS", 1))
-    
+    shard_index, total_shards = get_shard_params()    
     secrets = json.loads(os.getenv("SECRETS_JSON"))
 
     gcp_credentials = secrets.get("GCP_CREDENTIALS")
@@ -27,7 +36,8 @@ def main():
     encoder = src.encoder.FashionCLIPEncoder()
     loader = src.bigquery.load_items_to_embed(
         client=bq_client, 
-        shuffle=True,
+        shuffle=False,
+        n=NUM_ITEMS,
         shard_index=shard_index,
         total_shards=total_shards
     )
