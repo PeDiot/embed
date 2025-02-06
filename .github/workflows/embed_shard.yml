@@ -1,7 +1,6 @@
-name: Embed
+name: Embed with sharding
 
 on:
-  push:
   workflow_dispatch:
 
 jobs:
