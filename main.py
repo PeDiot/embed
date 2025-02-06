@@ -34,9 +34,10 @@ def main():
     pc_client = Pinecone(api_key=secrets.get("PINECONE_API_KEY"))
     pinecone_index = pc_client.Index(src.enums.PINECONE_INDEX_NAME)
     encoder = src.encoder.FashionCLIPEncoder()
+
     loader = src.bigquery.load_items_to_embed(
         client=bq_client, 
-        shuffle=False,
+        shuffle=True,
         n=NUM_ITEMS,
         shard_index=shard_index,
         total_shards=total_shards
