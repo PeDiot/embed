@@ -1,4 +1,4 @@
-PROJECT_ID = "carlia"
+PROJECT_ID = "recove-450509"
 DATASET_ID = "vinted"
 
 CATALOG_TABLE_ID = "catalog"
