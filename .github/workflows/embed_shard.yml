@@ -2,6 +2,8 @@ name: Embed with sharding
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '30 */6 * * *'
 
 jobs:
   embed:
