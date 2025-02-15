@@ -11,7 +11,7 @@ import src
 
 
 BATCH_SIZE = 128
-NUM_ITEMS = 50000
+NUM_ITEMS = None
 
 
 def get_shard_params() -> Tuple[Optional[int], Optional[int]]:
