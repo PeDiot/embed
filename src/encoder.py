@@ -26,11 +26,9 @@ class FashionCLIPEncoder:
 
         return embeddings.cpu().numpy().tolist()
 
-    def _create_batch(self, images: Union[str, Image.Image, List[Union[str, Image.Image]]]) -> torch.Tensor:
-        if not isinstance(images, list):
-            images = [images]
-        
+    def _create_batch(self, images: List[Union[str, Image.Image]]) -> torch.Tensor:        
         processed_images = []
+        
         for image in images:
             if isinstance(image, str):
                 image = Image.open(image)
