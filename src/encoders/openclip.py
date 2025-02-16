@@ -7,7 +7,7 @@ from PIL import Image
 MODEL_NAME = "hf-hub:Marqo/marqo-fashionCLIP"
 
 
-class FashionCLIPEncoder:
+class OpenCLIPEncoder:
     def __init__(self):
         self.model, self.preprocess_train, self.preprocess_val = open_clip.create_model_and_transforms(MODEL_NAME)
         self.model.eval()
@@ -26,12 +26,10 @@ class FashionCLIPEncoder:
 
         return embeddings.cpu().numpy().tolist()
 
-    def _create_batch(self, images: List[Union[str, Image.Image]]) -> torch.Tensor:        
+    def _create_batch(self, images: List[Image.Image]) -> torch.Tensor:        
         processed_images = []
         
         for image in images:
-            if isinstance(image, str):
-                image = Image.open(image)
             processed_images.append(self.preprocess_val(image))
         
         return torch.stack(processed_images).to(self.device)

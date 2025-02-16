@@ -10,7 +10,7 @@ from pinecone import Pinecone
 import src
 
 
-BATCH_SIZE = 128
+BATCH_SIZE = 8
 NUM_ITEMS = None
 
 
@@ -34,7 +34,7 @@ def main():
 
     pc_client = Pinecone(api_key=secrets.get("PINECONE_API_KEY"))
     pinecone_index = pc_client.Index(src.enums.PINECONE_INDEX_NAME)
-    encoder = src.encoder.FashionCLIPEncoder()
+    encoder = src.encoders.TransformersCLIPEncoder()
 
     loader = src.bigquery.load_items_to_embed(
         client=bq_client,
