@@ -63,7 +63,7 @@ def main():
             n += len(point_ids)
 
             try:
-                embeddings = encoder.encode_images(images)
+                embeddings = encoder.encode(images)
             except Exception as e:
                 print(f"Encoding error: {e}")
                 continue
@@ -101,11 +101,13 @@ def main():
             point_ids, images, payloads = [], [], []
             gc.collect()
 
-            loop.set_description(
-                f"Success rate: {n_success / n:.2f} | "
-                f"Processed: {n} | "
-                f"Inserted: {n_success} | "
-            )
+        success_rate = 0 if n == 0 else n_success / n
+
+        loop.set_description(
+            f"Success rate: {success_rate:.2f} | "
+            f"Processed: {n} | "
+            f"Inserted: {n_success} | "
+        )
 
 
 if __name__ == "__main__":
