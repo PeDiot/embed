@@ -9,7 +9,11 @@ MODEL_NAME = "hf-hub:Marqo/marqo-fashionCLIP"
 
 class OpenCLIPEncoder:
     def __init__(self):
-        self.model, self.preprocess_train, self.preprocess_val = open_clip.create_model_and_transforms(MODEL_NAME)
+        (
+            self.model,
+            self.preprocess_train,
+            self.preprocess_val,
+        ) = open_clip.create_model_and_transforms(MODEL_NAME)
         self.model.eval()
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model.to(self.device)
@@ -26,10 +30,10 @@ class OpenCLIPEncoder:
 
         return embeddings.cpu().numpy().tolist()
 
-    def _create_batch(self, images: List[Image.Image]) -> torch.Tensor:        
+    def _create_batch(self, images: List[Image.Image]) -> torch.Tensor:
         processed_images = []
-        
+
         for image in images:
             processed_images.append(self.preprocess_val(image))
-        
+
         return torch.stack(processed_images).to(self.device)

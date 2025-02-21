@@ -6,23 +6,11 @@ from .enums import *
 
 
 BASE_QUERY = f"""
-WITH tab AS (
 SELECT 
 item.*, 
-image.url AS image_location, 
-category.category_type AS category_type,
-catalog.women AS women,
-ROW_NUMBER() OVER (PARTITION BY item.vinted_id ORDER BY item.vinted_id DESC) AS row_num
-FROM `{PROJECT_ID}.{DATASET_ID}.{ITEM_TABLE_ID}` item
-LEFT JOIN `{PROJECT_ID}.{DATASET_ID}.{IMAGE_TABLE_ID}` image USING (vinted_id)
-LEFT JOIN `{PROJECT_ID}.{DATASET_ID}.{CATEGORY_TABLE_ID}` category USING (catalog_id)
-LEFT JOIN `{PROJECT_ID}.{DATASET_ID}.{CATALOG_TABLE_ID}` catalog ON item.catalog_id = catalog.id
+FROM `{PROJECT_ID}.{DATASET_ID}.{ITEM_ACTIVE_TABLE_ID}` item
 LEFT JOIN `{PROJECT_ID}.{DATASET_ID}.{PINECONE_TABLE_ID}` AS p ON item.id = p.item_id
-LEFT JOIN `{PROJECT_ID}.{DATASET_ID}.{SOLD_TABLE_ID}` AS s USING (vinted_id)
-WHERE s.vinted_id IS NULL AND p.item_id IS NULL
-)
-SELECT * EXCEPT (row_num) FROM tab 
-WHERE row_num = 1
+WHERE p.item_id IS NULL
 """
 
 
@@ -48,9 +36,7 @@ def load_items_to_embed(
     return client.query(query).result()
 
 
-def upload(
-    client: bigquery.Client, dataset_id: str, table_id: str, rows: List[Dict]
-) -> bool:
+def upload(client: bigquery.Client, table_id: str, rows: List[Dict]) -> bool:
     if len(rows) == 0:
         return False
 
@@ -73,9 +59,11 @@ def _query_items_to_embed(
         query += f" AND MOD(FARM_FINGERPRINT(CAST(vinted_id AS STRING)), {total_shards}) = {shard_index}"
 
     if shuffle:
-        query += " ORDER BY RAND()"
+        query += "\nORDER BY RAND()"
+    else:
+        query += "\nORDER BY created_at DESC"
 
     if (shard_index is None or total_shards is not None) and n is not None:
-        query += f" LIMIT {n}"
+        query += f"\nLIMIT {n}"
 
     return query

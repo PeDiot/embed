@@ -3,6 +3,7 @@ DATASET_ID = "vinted"
 
 CATALOG_TABLE_ID = "catalog"
 ITEM_TABLE_ID = "item"
+ITEM_ACTIVE_TABLE_ID = "item_active"
 IMAGE_TABLE_ID = "image"
 PINECONE_TABLE_ID = "pinecone"
 CATEGORY_TABLE_ID = "category"
