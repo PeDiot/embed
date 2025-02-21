@@ -11,7 +11,7 @@ from pinecone import Pinecone
 import src
 
 
-BATCH_SIZE = 16
+BATCH_SIZE = 128
 NUM_ITEMS = None
 SHUFFLE_ALPHA = 0.6
 
