@@ -1,17 +1,19 @@
 import sys
-import gc
-from typing import Optional, Tuple
 
 sys.path.append("../")
 
-import uuid, tqdm, json, os
+from typing import Optional, Tuple, Dict
+
+import uuid, tqdm, json, os, random, gc
 from PIL import Image
+from google.cloud import bigquery
 from pinecone import Pinecone
 import src
 
 
-BATCH_SIZE = 8
+BATCH_SIZE = 16
 NUM_ITEMS = None
+SHUFFLE_ALPHA = 0.6
 
 
 def get_shard_params() -> Tuple[Optional[int], Optional[int]]:
@@ -24,33 +26,56 @@ def get_shard_params() -> Tuple[Optional[int], Optional[int]]:
     return shard_index, total_shards
 
 
-def main():
-    shard_index, total_shards = get_shard_params()
-    secrets = json.loads(os.getenv("SECRETS_JSON"))
-
+def get_gcp_credentials() -> Dict:
     gcp_credentials = secrets.get("GCP_CREDENTIALS")
     gcp_credentials["private_key"] = gcp_credentials["private_key"].replace("\\n", "\n")
+
+    return gcp_credentials
+
+
+def get_dataloader() -> bigquery.table.RowIterator:
+    shuffle = random.random() < SHUFFLE_ALPHA
+
+    return src.bigquery.load_items_to_embed(
+        client=bq_client,
+        shuffle=shuffle,
+        n=NUM_ITEMS,
+        shard_index=shard_index,
+        total_shards=total_shards,
+    )
+
+
+def main():
+    global shard_index, total_shards
+    shard_index, total_shards = get_shard_params()
+
+    global secrets
+    secrets = json.loads(os.getenv("SECRETS_JSON"))
+
+    global bq_client
+    gcp_credentials = get_gcp_credentials()
     bq_client = src.bigquery.init_client(credentials_dict=gcp_credentials)
 
     pc_client = Pinecone(api_key=secrets.get("PINECONE_API_KEY"))
     pinecone_index = pc_client.Index(src.enums.PINECONE_INDEX_NAME)
     encoder = src.encoders.TransformersCLIPEncoder()
 
-    loader = src.bigquery.load_items_to_embed(
-        client=bq_client,
-        shuffle=True,
-        n=NUM_ITEMS,
-        shard_index=shard_index,
-        total_shards=total_shards,
-    )
-
     n_success, n = 0, 0
-    point_ids, images, payloads = [], [], []
+    index, point_ids, images, payloads = [], [], [], []
+
+    loader = get_dataloader()
     loop = tqdm.tqdm(iterable=loader, total=loader.total_rows)
 
     for row in loop:
         row = dict(row)
-        image = src.utils.download_image_as_pil(url=row.get("image_location"))
+        vinted_id = row.get("vinted_id")
+
+        if vinted_id in index:
+            continue
+
+        index.append(vinted_id)
+        image_url = row.get("image_location")
+        image = src.utils.download_image_as_pil(url=image_url)
 
         if isinstance(image, Image.Image):
             point_id = str(uuid.uuid4())
@@ -75,7 +100,6 @@ def main():
             if src.pinecone.upload(index=pinecone_index, vectors=points):
                 if src.bigquery.upload(
                     client=bq_client,
-                    dataset_id=src.enums.DATASET_ID,
                     table_id=src.enums.PINECONE_TABLE_ID,
                     rows=rows,
                 ):
@@ -92,7 +116,6 @@ def main():
 
                 if src.bigquery.upload(
                     client=bq_client,
-                    dataset_id=src.enums.DATASET_ID,
                     table_id=src.enums.PINECONE_TABLE_ID,
                     rows=valid_rows,
                 ):
