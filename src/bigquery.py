@@ -57,8 +57,7 @@ def _query_items_to_embed(
 
     if shard_index is not None and total_shards is not None:
         query += f" AND MOD(FARM_FINGERPRINT(CAST(vinted_id AS STRING)), {total_shards}) = {shard_index}"
-
-    if shuffle:
+    elif shuffle:
         query += "\nORDER BY RAND()"
     else:
         query += "\nORDER BY created_at DESC"

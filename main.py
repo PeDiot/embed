@@ -13,7 +13,7 @@ import src
 
 BATCH_SIZE = 128
 NUM_ITEMS = None
-SHUFFLE_ALPHA = 0.6
+SHUFFLE_ALPHA = 0.2
 
 
 def get_shard_params() -> Tuple[Optional[int], Optional[int]]:
