@@ -61,8 +61,8 @@ def main():
     encoder = src.encoders.TransformersCLIPEncoder()
 
     n_success, n = 0, 0
-    index, point_ids, images, payloads = [], [], [], []
-
+    index, point_ids, images, payloads, to_delete_ids = [], [], [], [], []
+    
     loader = get_dataloader()
     loop = tqdm.tqdm(iterable=loader, total=loader.total_rows)
 
@@ -83,6 +83,9 @@ def main():
             images.append(image)
             payloads.append(row)
             point_ids.append(point_id)
+        
+        else:
+            to_delete_ids.append(vinted_id)
 
         if len(point_ids) > 0 and len(point_ids) % BATCH_SIZE == 0:
             n += len(point_ids)
@@ -131,6 +134,13 @@ def main():
             f"Processed: {n} | "
             f"Inserted: {n_success} | "
         )
+
+    if len(to_delete_ids) > 0:
+        to_delete_ids = ", ".join([f"'{vinted_id}'" for vinted_id in to_delete_ids])
+        conditions = f"vinted_id IN ({to_delete_ids})"
+        
+        if src.bigquery.delete(client=bq_client, table_id=src.enums.ITEM_TABLE_ID, conditions=conditions):
+            print(f"Deleted {len(to_delete_ids)} items from {src.enums.ITEM_TABLE_ID}")
 
 
 if __name__ == "__main__":

@@ -47,6 +47,20 @@ def upload(client: bigquery.Client, table_id: str, rows: List[Dict]) -> bool:
     return len(output) == 0
 
 
+def delete(client: bigquery.Client, table_id: str, conditions: List[str]) -> bool:
+    query = f"""
+    DELETE FROM `{PROJECT_ID}.{DATASET_ID}.{table_id}`
+    WHERE {conditions}
+    """
+
+    try:
+        client.query(query).result()
+        return True
+    except Exception as e:
+        print(e)
+        return False
+    
+
 def _query_items_to_embed(
     shuffle: bool = False,
     n: Optional[int] = None,
