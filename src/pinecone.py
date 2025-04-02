@@ -24,7 +24,8 @@ def upload(index: pinecone.Index, vectors: List[Dict]) -> bool:
     try:
         index.upsert(vectors=vectors)
         return True
-    except:
+    except Exception as e:
+        print(e)
         return False
 
 

@@ -44,14 +44,23 @@ def load_items_to_embed(
 
 
 def upload(client: bigquery.Client, table_id: str, rows: List[Dict]) -> bool:
-    if len(rows) == 0:
+    try:
+        if len(rows) == 0:
+            return False
+
+        errors = client.insert_rows_json(
+            table=f"{PROJECT_ID}.{DATASET_ID}.{table_id}", json_rows=rows
+        )
+
+        if not errors:
+            return True
+        else:
+            print(errors)
+            return False
+        
+    except Exception as e:
+        print(e)
         return False
-
-    output = client.insert_rows_json(
-        table=f"{PROJECT_ID}.{DATASET_ID}.{table_id}", json_rows=rows
-    )
-
-    return len(output) == 0
 
 
 def delete(client: bigquery.Client, table_id: str, conditions: List[str]) -> bool:
