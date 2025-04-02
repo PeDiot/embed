@@ -19,7 +19,7 @@ SHUFFLE_ALPHA = 0.2
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--use-color-id", 
+        "--use-color-id",
         "-ucid",
         type=lambda x: x.lower() == "true",
         default=False,
@@ -75,7 +75,7 @@ def main(use_color_id: bool):
 
     n_success, n = 0, 0
     index, point_ids, images, payloads, to_delete_ids = [], [], [], [], []
-    
+
     loader = get_dataloader(use_color_id)
     loop = tqdm.tqdm(iterable=loader, total=loader.total_rows)
 
@@ -96,7 +96,7 @@ def main(use_color_id: bool):
             images.append(image)
             payloads.append(row)
             point_ids.append(point_id)
-        
+
         else:
             to_delete_ids.append(vinted_id)
 
@@ -151,8 +151,10 @@ def main(use_color_id: bool):
     if len(to_delete_ids) > 0:
         to_delete_ids = ", ".join([f"'{vinted_id}'" for vinted_id in to_delete_ids])
         conditions = f"vinted_id IN ({to_delete_ids})"
-        
-        if src.bigquery.delete(client=bq_client, table_id=src.enums.ITEM_TABLE_ID, conditions=conditions):
+
+        if src.bigquery.delete(
+            client=bq_client, table_id=src.enums.ITEM_TABLE_ID, conditions=conditions
+        ):
             print(f"Deleted {len(to_delete_ids)} items from {src.enums.ITEM_TABLE_ID}")
 
 

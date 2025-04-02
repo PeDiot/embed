@@ -66,7 +66,7 @@ def delete(client: bigquery.Client, table_id: str, conditions: List[str]) -> boo
     except Exception as e:
         print(e)
         return False
-    
+
 
 def _query_items_to_embed(
     shuffle: bool = False,
@@ -84,7 +84,7 @@ def _query_items_to_embed(
 
     if shard_index is not None and total_shards is not None:
         query += f" AND MOD(FARM_FINGERPRINT(CAST(vinted_id AS STRING)), {total_shards}) = {shard_index}"
-    
+
     if shuffle:
         query += "\nORDER BY RAND()"
     else:
