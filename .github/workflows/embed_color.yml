@@ -1,4 +1,4 @@
-name: Embed Color
+name: Embed by Color
 
 on:
   workflow_dispatch:
