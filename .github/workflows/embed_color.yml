@@ -1,0 +1,25 @@
+name: Embed Color
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 */12 * * *'
+
+jobs:
+  embed_color:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Docker Image
+        run: docker build -t embed_color .
+
+      - name: Run Docker Container
+        env:
+          SECRETS_JSON: ${{ secrets.SECRETS_JSON }}
+        run: docker run -e SECRETS_JSON embed_color --use-color-id true 

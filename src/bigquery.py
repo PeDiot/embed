@@ -30,8 +30,15 @@ def load_items_to_embed(
     n: Optional[int] = None,
     shard_index: Optional[int] = None,
     total_shards: Optional[int] = None,
+    use_color_id: bool = False,
 ) -> bigquery.table.RowIterator:
-    query = _query_items_to_embed(shuffle, n, shard_index, total_shards)
+    query = _query_items_to_embed(
+        shuffle=shuffle,
+        n=n,
+        shard_index=shard_index,
+        total_shards=total_shards,
+        use_color_id=use_color_id,
+    )
 
     return client.query(query).result()
 
@@ -66,12 +73,19 @@ def _query_items_to_embed(
     n: Optional[int] = None,
     shard_index: Optional[int] = None,
     total_shards: Optional[int] = None,
+    use_color_id: bool = False,
 ) -> str:
     query = BASE_QUERY
 
+    if use_color_id:
+        query += f" AND color_id != -1"
+    else:
+        query += f" AND color_id = -1"
+
     if shard_index is not None and total_shards is not None:
         query += f" AND MOD(FARM_FINGERPRINT(CAST(vinted_id AS STRING)), {total_shards}) = {shard_index}"
-    elif shuffle:
+    
+    if shuffle:
         query += "\nORDER BY RAND()"
     else:
         query += "\nORDER BY created_at DESC"
