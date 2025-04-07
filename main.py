@@ -13,7 +13,7 @@ import src
 
 BATCH_SIZE = 128
 NUM_ITEMS = None
-SHUFFLE_ALPHA = 0.7
+SHUFFLE_ALPHA = 0.2
 
 
 def parse_args():
