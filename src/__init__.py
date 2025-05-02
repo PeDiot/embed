@@ -1,1 +1,1 @@
-from . import encoders, utils, enums, bigquery, pinecone
+from . import encoder, utils, enums, bigquery, pinecone

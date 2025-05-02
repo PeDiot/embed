@@ -3,6 +3,7 @@
 .ruff_cache/
 venv/
 secrets.json
+data/
 
 # Python
 __pycache__/
