@@ -10,7 +10,8 @@ SELECT
 item.*, 
 FROM `{PROJECT_ID}.{DATASET_ID}.{ITEM_ACTIVE_TABLE_ID}` item
 LEFT JOIN `{PROJECT_ID}.{DATASET_ID}.{PINECONE_TABLE_ID}` AS p ON item.id = p.item_id
-WHERE p.item_id IS NULL
+LEFT JOIN `{PROJECT_ID}.{DATASET_ID}.{SOLD_TABLE_ID}` AS s USING (vinted_id)
+WHERE p.item_id IS NULL AND s.vinted_id IS NULL
 """
 
 
