@@ -4,7 +4,7 @@ sys.path.append("../")
 
 from typing import Optional, Tuple, Dict
 
-import uuid, tqdm, json, os, random, gc, argparse
+import uuid, tqdm, json, os, random, gc
 from PIL import Image
 from google.cloud import bigquery
 from pinecone import Pinecone
@@ -13,19 +13,7 @@ import src
 
 BATCH_SIZE = 128
 NUM_ITEMS = None
-SHUFFLE_ALPHA = 0.2
-
-
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--use-color-id",
-        "-ucid",
-        type=lambda x: x.lower() == "true",
-        default=False,
-    )
-
-    return parser.parse_args()
+SHUFFLE_ALPHA = 0.3
 
 
 def get_shard_params() -> Tuple[Optional[int], Optional[int]]:
@@ -45,7 +33,7 @@ def get_gcp_credentials() -> Dict:
     return gcp_credentials
 
 
-def get_dataloader(use_color_id: bool) -> bigquery.table.RowIterator:
+def get_dataloader() -> bigquery.table.RowIterator:
     shuffle = random.random() < SHUFFLE_ALPHA
 
     return src.bigquery.load_items_to_embed(
@@ -54,11 +42,10 @@ def get_dataloader(use_color_id: bool) -> bigquery.table.RowIterator:
         n=NUM_ITEMS,
         shard_index=shard_index,
         total_shards=total_shards,
-        use_color_id=use_color_id,
     )
 
 
-def main(use_color_id: bool):
+def main():
     global shard_index, total_shards
     shard_index, total_shards = get_shard_params()
 
@@ -76,7 +63,7 @@ def main(use_color_id: bool):
     n_success, n = 0, 0
     index, point_ids, images, payloads, to_delete_ids = [], [], [], [], []
 
-    loader = get_dataloader(use_color_id)
+    loader = get_dataloader()
     loop = tqdm.tqdm(iterable=loader, total=loader.total_rows)
 
     for row in loop:
@@ -159,5 +146,4 @@ def main(use_color_id: bool):
 
 
 if __name__ == "__main__":
-    args = parse_args()
-    main(use_color_id=args.use_color_id)
+    main()

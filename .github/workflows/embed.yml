@@ -3,7 +3,7 @@ name: Embed
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 */7 * * *'
+    - cron: '30 */6 * * *'
 
 jobs:
   embed:
