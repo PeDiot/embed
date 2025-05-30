@@ -58,7 +58,7 @@ def main():
 
     pc_client = Pinecone(api_key=secrets.get("PINECONE_API_KEY"))
     pinecone_index = pc_client.Index(src.enums.PINECONE_INDEX_NAME)
-    encoder = src.encoder.FashionCLIPEncoder()
+    encoder = src.encoder.FashionCLIPEncoder(normalize=True)
 
     n_success, n = 0, 0
     index, point_ids, images, payloads, to_delete_ids = [], [], [], [], []
