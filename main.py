@@ -139,9 +139,6 @@ def main():
             f"Inserted: {n_success} | "
         )
 
-        if n > 0:
-            return
-
     if len(to_delete_ids) > 0:
         to_delete_ids = ", ".join([f"'{vinted_id}'" for vinted_id in to_delete_ids])
         conditions = f"vinted_id IN ({to_delete_ids})"
