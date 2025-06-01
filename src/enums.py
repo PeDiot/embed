@@ -9,4 +9,14 @@ PINECONE_TABLE_ID = "pinecone"
 CATEGORY_TABLE_ID = "category"
 SOLD_TABLE_ID = "sold"
 
-PINECONE_INDEX_NAME = "items"
+PINECONE_INDEX_NAME = "vinted"
+
+CATEGORY_TYPES = [
+    "top",
+    "accessories",
+    "bottom",
+    "outerwear",
+    "footwear",
+    "dress",
+    "suit",
+]
