@@ -56,7 +56,7 @@ def upload(client: bigquery.Client, table_id: str, rows: List[Dict]) -> bool:
         else:
             print(errors)
             return False
-        
+
     except Exception as e:
         print(e)
         return False
@@ -83,6 +83,11 @@ def _query_items_to_embed(
     total_shards: Optional[int] = None,
 ) -> str:
     query = BASE_QUERY
+
+    category_types = ", ".join(
+        [f"'{category_type}'" for category_type in CATEGORY_TYPES]
+    )
+    query += f" AND category_type IN ({category_types})"
 
     if shard_index is not None and total_shards is not None:
         query += f" AND MOD(FARM_FINGERPRINT(CAST(vinted_id AS STRING)), {total_shards}) = {shard_index}"
