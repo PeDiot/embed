@@ -7,7 +7,6 @@ from PIL import Image
 def load_json(file_path: str) -> Dict:
     with open(file_path, "r", encoding="utf-8") as f:
         return json.load(f)
-    
 
 
 def save_json(data: dict, file_path: str) -> bool:
@@ -15,7 +14,7 @@ def save_json(data: dict, file_path: str) -> bool:
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
         return True
-    
+
     except Exception as e:
         print(e)
         return False
@@ -28,10 +27,7 @@ def download_image_as_pil(url: str, timeout: int = 10) -> Image.Image:
 
     try:
         response = requests.get(
-            url, 
-            stream=True, 
-            headers=REQUESTS_HEADERS, 
-            timeout=timeout
+            url, stream=True, headers=REQUESTS_HEADERS, timeout=timeout
         )
 
         if response.status_code == 200:
@@ -42,10 +38,10 @@ def download_image_as_pil(url: str, timeout: int = 10) -> Image.Image:
 
 
 def normalize_vectors(vectors: torch.Tensor) -> torch.Tensor:
-    norms = torch.norm(vectors, p=2, dim=1, keepdim=True)    
-    norms = torch.norm(vectors, p=2, dim=1, keepdim=True)    
-    norms = torch.where(norms > 1e-8, norms, torch.ones_like(norms))    
-    normalized_vectors = vectors / norms    
+    norms = torch.norm(vectors, p=2, dim=1, keepdim=True)
+    norms = torch.norm(vectors, p=2, dim=1, keepdim=True)
+    norms = torch.where(norms > 1e-8, norms, torch.ones_like(norms))
+    normalized_vectors = vectors / norms
 
     return normalized_vectors
 

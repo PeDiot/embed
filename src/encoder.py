@@ -49,10 +49,10 @@ class FashionCLIPEncoder:
     def _encode_images(self, batch: Dict) -> List[List[float]]:
         vectors = self.model.get_image_features(**batch).detach().cpu()
         return self._postprocess(vectors)
-    
+
     def _postprocess(self, vectors: torch.Tensor) -> List[List[float]]:
         vectors = torch.nan_to_num(vectors, nan=0.0)
         if self.normalize:
             vectors = normalize_vectors(vectors)
-            
+
         return vectors.numpy().tolist()
