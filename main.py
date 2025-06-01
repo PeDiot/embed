@@ -1,13 +1,14 @@
 import sys
 
-sys.path.append("../")
+sys.path.append("/app")
 
-from typing import Optional, Tuple, Dict
+from typing import Optional, Tuple, Dict, List
 
 import uuid, tqdm, json, os, random, gc
 from PIL import Image
 from google.cloud import bigquery
 from pinecone import Pinecone
+
 import src
 
 
@@ -40,25 +41,60 @@ def get_dataloader() -> bigquery.table.RowIterator:
         client=bq_client,
         shuffle=shuffle,
         n=NUM_ITEMS,
-        shard_index=shard_index,
-        total_shards=total_shards,
     )
 
 
-def main():
-    global shard_index, total_shards
-    shard_index, total_shards = get_shard_params()
+def upload(points: Dict[str, List[Dict]], rows: Dict[str, List[Dict]]) -> int:
+    n_success = 0
 
+    for namespace in points:
+        namespace_points = points[namespace]
+        namespace_rows = rows[namespace]
+
+        if src.pinecone.upload(
+            index=pinecone_index,
+            vectors=namespace_points,
+            namespace=namespace,
+        ):
+            if src.bigquery.upload(
+                client=bq_client,
+                table_id=src.enums.PINECONE_TABLE_ID,
+                rows=namespace_rows,
+            ):
+                n_success = len(namespace_points)
+
+        else:
+            valid_rows = []
+
+            for point, row in zip(namespace_points, namespace_rows):
+                if src.pinecone.upload(
+                    index=pinecone_index,
+                    vectors=[point],
+                    namespace=namespace,
+                ):
+                    valid_rows.append(row)
+
+            if src.bigquery.upload(
+                client=bq_client,
+                table_id=src.enums.PINECONE_TABLE_ID,
+                rows=valid_rows,
+            ):
+                n_success = len(valid_rows)
+
+    return n_success
+
+
+def main():
     global secrets
     secrets = json.loads(os.getenv("SECRETS_JSON"))
 
-    global bq_client
+    global bq_client, pinecone_index
     gcp_credentials = get_gcp_credentials()
     bq_client = src.bigquery.init_client(credentials_dict=gcp_credentials)
 
     pc_client = Pinecone(api_key=secrets.get("PINECONE_API_KEY"))
     pinecone_index = pc_client.Index(src.enums.PINECONE_INDEX_NAME)
-    encoder = src.encoders.TransformersCLIPEncoder()
+    encoder = src.encoder.FashionCLIPEncoder(normalize=True)
 
     n_success, n = 0, 0
     index, point_ids, images, payloads, to_delete_ids = [], [], [], [], []
@@ -91,7 +127,7 @@ def main():
             n += len(point_ids)
 
             try:
-                embeddings = encoder.encode(images)
+                embeddings = encoder.encode_images(images)
             except Exception as e:
                 print(f"Encoding error: {e}")
                 continue
@@ -100,29 +136,7 @@ def main():
                 point_ids=point_ids, payloads=payloads, embeddings=embeddings
             )
 
-            if src.pinecone.upload(index=pinecone_index, vectors=points):
-                if src.bigquery.upload(
-                    client=bq_client,
-                    table_id=src.enums.PINECONE_TABLE_ID,
-                    rows=rows,
-                ):
-                    n_success += len(point_ids)
-
-            else:
-                valid_rows = []
-
-                for point, row in zip(points, rows):
-                    success = src.pinecone.upload(index=pinecone_index, vectors=[point])
-
-                    if success:
-                        valid_rows.append(row)
-
-                if src.bigquery.upload(
-                    client=bq_client,
-                    table_id=src.enums.PINECONE_TABLE_ID,
-                    rows=valid_rows,
-                ):
-                    n_success += len(valid_rows)
+            n_success += upload(points, rows)
 
             point_ids, images, payloads = [], [], []
             gc.collect()
@@ -134,6 +148,9 @@ def main():
             f"Processed: {n} | "
             f"Inserted: {n_success} | "
         )
+
+        if n > 0:
+            return
 
     if len(to_delete_ids) > 0:
         to_delete_ids = ", ".join([f"'{vinted_id}'" for vinted_id in to_delete_ids])
