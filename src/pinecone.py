@@ -1,28 +1,32 @@
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Tuple
+from collections import defaultdict
 import pinecone
 
 
 def prepare(
     point_ids: List[str], payloads: List[Dict], embeddings: List[float]
-) -> Tuple[List[Dict], Dict]:
-    vectors, rows = [], []
+) -> Tuple[Dict[str, List[Dict]], Dict[str, List[Dict]]]:
+    vectors, rows = defaultdict(list), defaultdict(list)
 
     for point_id, payload, embedding in zip(point_ids, payloads, embeddings):
         if _is_valid_payload(payload):
+            category_type = payload.get("category_type")
+
             vector = _create_vector(point_id, payload, embedding)
             row = _create_row(vector)
-            vectors.append(vector)
-            rows.append(row)
+
+            vectors[category_type].append(vector)
+            rows[category_type].append(row)
 
     return vectors, rows
 
 
-def upload(index: pinecone.Index, vectors: List[Dict]) -> bool:
+def upload(index: pinecone.Index, vectors: List[Dict], namespace: str) -> bool:
     if len(vectors) == 0:
         return False
 
     try:
-        index.upsert(vectors=vectors)
+        index.upsert(vectors=vectors, namespace=namespace)
         return True
     except Exception as e:
         print(e)
@@ -34,7 +38,11 @@ def _create_vector(point_id: str, payload: Dict, embedding: List[float]) -> Dict
 
 
 def _create_row(vector: Dict) -> Dict:
-    return {"item_id": vector.get("metadata").get("id"), "point_id": vector.get("id")}
+    return {
+        "item_id": vector.get("metadata").get("id"),
+        "point_id": vector.get("id"),
+        "namespace": vector.get("metadata").get("category_type"),
+    }
 
 
 def _is_valid_payload(payload: Dict) -> bool:
