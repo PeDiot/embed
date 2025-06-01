@@ -2,7 +2,7 @@ import sys
 
 sys.path.append("/app")
 
-from typing import Optional, Tuple, Dict, List
+from typing import Dict, List
 
 import uuid, tqdm, json, os, random, gc
 from PIL import Image
@@ -15,16 +15,6 @@ import src
 BATCH_SIZE = 128
 NUM_ITEMS = None
 SHUFFLE_ALPHA = 0.3
-
-
-def get_shard_params() -> Tuple[Optional[int], Optional[int]]:
-    shard_index = int(os.getenv("SHARD_INDEX", -1))
-    total_shards = int(os.getenv("TOTAL_SHARDS", -1))
-
-    if shard_index == -1 or total_shards == -1:
-        return None, None
-
-    return shard_index, total_shards
 
 
 def get_gcp_credentials() -> Dict:
